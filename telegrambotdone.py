@@ -2,10 +2,18 @@ import config
 import telebot
 from telebot import types# кнопки
 from string import Template
-bot = telebot.TeleBot(config.TOKEN)
-
 
 bot = telebot.TeleBot(config.TOKEN)
+text_about = '''Что вы получите после окончания курсов?🧑🏻‍💻👩🏻‍💻
+💥 Основы программирования; 
+💥 Владение языком - Python;
+💥 И многое, многое другое...Хотите записаться на на пробный урок?'''
+
+text_title = '''Ваша заявка принята😊. Ждём вас в воскресенье в 15:00 
+по адресу: ул.Раззакова 32 (бизнес-центр «Олимп»),
+ 6 этаж 03 кабинет. Убедительно просим не опаздывать!🤗'''
+
+ 
 user_dict = {}
 
 class User:
@@ -26,12 +34,13 @@ def welcome(message):
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 	item1 = types.KeyboardButton("Информация")
 	item2 = types.KeyboardButton("Пробный урок")
-	item3 = types.KeyboardButton("оставить заявку")
+	item3 = types.KeyboardButton("Оставить заявку")
     
 
 	markup.row(item1, item2).add(item3)
 
-	bot.send_message(message.chat.id, "Добро пожаловать, {0.first_name}!\nЯ - <b>{1.first_name}</b>, бот созданный чтобы принимать заявку на пробный урок и проинформировать вас о наших курсах))".format(message.from_user, bot.get_me()),
+	bot.send_message(message.chat.id, "Добро пожаловать, {0.first_name}!\nЯ - <b>{1.first_name}</b>, \
+     бот созданный чтобы принимать заявку на пробный урок и проинформировать вас о наших курсах))".format(message.from_user, bot.get_me()),
 		parse_mode='html', reply_markup=markup)
 
 @bot.message_handler(content_types=['text'])
@@ -50,11 +59,7 @@ def lalala(message):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1 = types.KeyboardButton("Да")
         markup.add(item1)
-        bot.send_message(message.chat.id, '👇Что вы получите после окончания курсов?👇 \
-            n💥 Основы программирования; \n💥 Владение языком - Python;\n💥 Понимание и работа с Django;\
-                n💥 Конфигурация проектов на сервере;\n💥 3 проекта в портфолио;\n💥 Опытного ментора и поддержку на всех этапах обучения;\
-                    n💥 Сертификат по итогам обучения;\n💥 Знания программирования от новичка до уровня «Junior»-программиста\
-                        n💥 И многое, многое другое...\nХотите записаться на на пробный урок?', reply_markup=markup)
+        bot.send_message(message.chat.id, text_about, reply_markup=markup)
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         item1 = types.KeyboardButton("Python")
                         
@@ -71,7 +76,7 @@ def lalala(message):
         item2 = types.InlineKeyboardButton("Не очень", callback_data='bad')
         markup.add(item1, item2)
 
-    elif message.text == 'оставить заявку' or message.text == 'Да':
+    elif message.text == 'Оставить заявку' or message.text == 'Да':
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
         itembtn1 = types.KeyboardButton('Ош')
         itembtn2 = types.KeyboardButton('Бишкек')
@@ -86,7 +91,7 @@ def process_city_step(message):
         chat_id = message.chat.id
         user_dict[chat_id] = User(message.text)
 
-        # у<zxxxдалить старую клавиатуру
+        # удалить старую клавиатуру
         markup = types.ReplyKeyboardRemove(selective=False)
 
         msg = bot.send_message(chat_id, 'Фамилия Имя Отчество', reply_markup=markup)
@@ -101,9 +106,9 @@ def process_fullname_step(message):
         user = user_dict[chat_id]
         user.fullname = message.text
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-        itembtn1 = types.KeyboardButton('скрипт')
-        itembtn2 = types.KeyboardButton('питон')
-        itembtn3 = types.KeyboardButton('оба')
+        itembtn1 = types.KeyboardButton('JavaScript')
+        itembtn2 = types.KeyboardButton('Python')
+        itembtn3 = types.KeyboardButton('FULL-Stack')
 
    
         markup.add(itembtn1, itembtn2, itembtn3, )
@@ -133,16 +138,16 @@ def phone(message):
         user.phone = message.text
 
         # ваша заявка "Имя пользователя"
-        bot.send_message(chat_id, 'Ваша заявка принята😊. Ждём вас в воскресенье в 15:00 по адресу: ул.Раззакова 32 (бизнес-центр «Олимп»), 6 этаж 03 кабинет. Убедительно просим не опаздывать!🤗', parse_mode="Markdown")
-        # отправить в группу
-        bot.send_message(bot.get_chat('@pilioph').id, getRegData(user, 'Заявка от бота', bot.get_me().username), parse_mode="Markdown") 
+        bot.send_message(chat_id, text_title, parse_mode="Markdown")
+        # отправить в группу которую указываете 
+        bot.send_message(bot.get_chat('@itc_kg').id, getRegData(user, 'Заявка от бота', bot.get_me().username), parse_mode="Markdown") 
                 
     except Exception as e:
         msg = bot.reply_to(message, 'Вы ввели что то другое. Пожалуйста введите номер телефона.')
         bot.register_next_step_handler(msg,phone)
 
 def getRegData(user, title, name):
-    t = Template('$title *$name* \n Город: *$userCity* \n Фамилия и имя: *$fullname* \n Пробный урок по: *$cource* \n Телефон: *$phone*  ')
+    t = Template('$title *$name* \nГород: *$userCity* \nФамилия и имя: *$fullname* \nПробный урок по: *$cource* \nТелефон: *$phone*  ')
 
     return t.substitute({
         'title': title,
